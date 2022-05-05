@@ -27,6 +27,7 @@ except NameError:
 
 _verbose = False
 _quiet = False
+_stop_on_error = False
 
 
 class MaxBackupAttemptsReached(Exception):
@@ -53,7 +54,7 @@ def exit(message, code=1):
     sys.exit(code)
 
 
-def exec_cmd(command, stop_on_error=True):
+def exec_cmd(command, stop_on_error=False):
     """
     Executes an external command taking into account errors and logging.
     """
@@ -263,6 +264,13 @@ def main():
         help="max. number of attempts to backup repository",
     )
     parser.add_argument(
+        "-x",
+        "--stop_on_error",
+        action="store_true",
+        dest="stop_on_error",
+        help="do not continue fetching other repositories in repo list",
+    )
+    parser.add_argument(
         "--mirror",
         action="store_true",
         help="Clone just bare repositories with git clone --mirror (git only)",
@@ -320,6 +328,8 @@ def main():
     _quiet = args.quiet
     global _verbose
     _verbose = args.verbose
+    global _stop_on_error
+    _stop_on_error = True
     _mirror = args.mirror
     _fetchlfs = args.fetchlfs
     _with_wiki = args.with_wiki
@@ -434,7 +444,7 @@ def main():
             0,
         )
     except MaxBackupAttemptsReached as e:
-        exit("Unable to backup: %s" % e)
+        print(f"Unable to backup: %s" % e)
     except:
         if not _quiet:
             import traceback
